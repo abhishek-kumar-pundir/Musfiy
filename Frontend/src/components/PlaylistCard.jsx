@@ -1,18 +1,21 @@
-import { Play, Pause, Music, Music2, Clock } from "lucide-react";
+import { Play, Pause, AudioLines } from "lucide-react";
 import { usePlayerStore } from "../stores/usePlayerStore";
+import { usePlaylistStore } from "../stores/usePlaylistStore";
+
+const titleCase = (s) =>
+  s.replace(/\w\S*/g, (t) => t.charAt(0).toUpperCase() + t.slice(1).toLowerCase());
 
 const PlaylistCard = ({ playlist }) => {
   const setQueue = usePlayerStore((s) => s.setQueue);
   const playTrack = usePlayerStore((s) => s.playTrack);
   const currentTrack = usePlayerStore((s) => s.currentTrack);
   const isPlaying = usePlayerStore((s) => s.isPlaying);
+  const lastMood = usePlaylistStore((s) => s.lastMood);
 
   const handlePlay = (track) => {
-    // If clicking the currently playing track, toggle play/pause
     if (currentTrack?._id === track._id) {
       usePlayerStore.setState((s) => ({ isPlaying: !s.isPlaying }));
     } else {
-      // Otherwise, set queue and play new track
       setQueue(playlist, "playlist");
       playTrack(track);
     }
@@ -20,27 +23,23 @@ const PlaylistCard = ({ playlist }) => {
 
   const isCurrentTrack = (track) => currentTrack?._id === track._id;
 
-  return (
-    <div className="bg-base-200 p-4 sm:p-6 rounded-2xl border border-base-content/[0.06] mb-4 sm:mb-6">
-      
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-base-300">
-        <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-lg">
-          <Music2 size={20} className="sm:w-6 sm:h-6 text-white" />
-        </div>
-        <div className="flex-1">
-          <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Generated Playlist
-          </h2>
-          <p className="text-xs sm:text-sm text-base-content/60 flex items-center gap-1.5 mt-0.5">
-            <Clock size={12} className="sm:w-3.5 sm:h-3.5" />
-            {playlist.length} {playlist.length === 1 ? 'track' : 'tracks'}
-          </p>
-        </div>
-      </div>
+  const totalSeconds = playlist.reduce((sum, t) => sum + (t.duration || 0), 0);
+  const totalMinutes = totalSeconds ? Math.round(totalSeconds / 60) : null;
 
-      {/* Playlist Items - Same UI as TrackCard */}
-      <div className="space-y-2 max-h-[calc(100vh-20rem)] sm:max-h-[500px] overflow-y-auto custom-scrollbar">
+  return (
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-subtle mb-1">
+        Your Mix
+      </p>
+      <h2 className="text-lg font-bold text-base-content mb-1">
+        {lastMood ? titleCase(lastMood) : "Generated Mix"}
+      </h2>
+      <p className="text-xs text-muted mb-4">
+        {playlist.length} {playlist.length === 1 ? "track" : "tracks"}
+        {totalMinutes ? ` · ${totalMinutes} min` : ""}
+      </p>
+
+      <div>
         {playlist.map((track) => {
           const isCurrent = isCurrentTrack(track);
           const isTrackPlaying = isCurrent && isPlaying;
@@ -48,48 +47,30 @@ const PlaylistCard = ({ playlist }) => {
           return (
             <div
               key={track._id}
-              className={`group relative p-3 sm:p-4 rounded-xl sm:rounded-2xl flex items-center gap-3 sm:gap-4 transition-all duration-300 cursor-pointer ${
-                isCurrent
-                  ? 'bg-gradient-to-r from-primary/20 to-secondary/20 shadow-lg ring-1 ring-primary/30'
-                  : 'bg-base-200 hover:bg-base-300 hover:shadow-md'
+              className={`group relative flex items-center gap-3 py-2.5 px-2 -mx-2 cursor-pointer transition-colors duration-150 ${
+                isCurrent ? "bg-base-200" : "hover:bg-base-200/60"
               }`}
+              style={{
+                borderLeft: isCurrent ? "2px solid rgb(var(--c-accent))" : "2px solid transparent",
+              }}
               onClick={() => handlePlay(track)}
             >
-              {/* Album Art / Icon - Same as TrackCard */}
-              <div
-                className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-300 shadow-md ${
-                  isCurrent
-                    ? 'bg-gradient-to-br from-primary to-secondary'
-                    : 'bg-base-300 group-hover:bg-primary/20'
-                }`}
-              >
-                {isTrackPlaying ? (
-                  <div className="flex gap-1 items-end h-5">
-                    <span className="w-1 bg-white animate-pulse" style={{ height: '40%', animationDelay: '0ms' }}></span>
-                    <span className="w-1 bg-white animate-pulse" style={{ height: '100%', animationDelay: '150ms' }}></span>
-                    <span className="w-1 bg-white animate-pulse" style={{ height: '60%', animationDelay: '300ms' }}></span>
-                  </div>
-                ) : (
-                  <Music size={20} className={`sm:w-6 sm:h-6 ${isCurrent ? 'text-white' : 'text-base-content/60 group-hover:text-primary'}`} />
-                )}
+              <div className="w-9 h-9 rounded-md bg-base-300 flex items-center justify-center flex-shrink-0">
+                <AudioLines size={15} className="text-subtle" />
               </div>
 
-              {/* Track Info - Same as TrackCard */}
               <div className="flex-1 min-w-0">
-                <h3 className={`font-semibold text-sm sm:text-base truncate transition-colors ${isCurrent ? 'text-primary' : 'text-base-content'}`}>
+                <h3 className={`text-sm font-semibold truncate ${isCurrent ? "text-primary" : "text-base-content"}`}>
                   {track.title}
                 </h3>
-                <p className="text-xs sm:text-sm text-base-content/60 truncate">
-                  {track.artist}
-                </p>
+                <p className="text-xs text-muted truncate">{track.artist}</p>
               </div>
 
-              {/* Play/Pause Button - Same as TrackCard */}
               <button
-                className={`flex-shrink-0 btn btn-sm btn-circle transition-all duration-300 ${
+                className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-opacity ${
                   isCurrent
-                    ? 'bg-gradient-to-br from-primary to-secondary border-none text-white shadow-lg'
-                    : 'btn-ghost hover:bg-primary/10 hover:text-primary opacity-0 group-hover:opacity-100 sm:opacity-100'
+                    ? "bg-primary text-primary-content opacity-100"
+                    : "text-base-content opacity-0 group-hover:opacity-100 hover:bg-base-300"
                 }`}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -97,27 +78,15 @@ const PlaylistCard = ({ playlist }) => {
                 }}
               >
                 {isTrackPlaying ? (
-                  <Pause size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" />
+                  <Pause size={13} fill="currentColor" />
                 ) : (
-                  <Play size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" />
+                  <Play size={13} fill="currentColor" className="ml-0.5" />
                 )}
               </button>
             </div>
           );
         })}
       </div>
-
-      {/* Custom Scrollbar Styles - Invisible */}
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 0px;
-          display: none;
-        }
-        .custom-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </div>
   );
 };

@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Play, Pause, Music, Sparkles, Loader2, ListPlus } from "lucide-react";
+import { Play, Pause, AudioLines, Loader2, ListPlus } from "lucide-react";
 import toast from "react-hot-toast";
 import { usePlayerStore } from "../stores/usePlayerStore";
 import { useTrackStore } from "../stores/useTrackStore";
 
-const TrackCard = ({ track }) => {
+const TrackCard = ({ track, index }) => {
   const playTrack = usePlayerStore((s) => s.playTrack);
   const setQueue = usePlayerStore((s) => s.setQueue);
   const queueTracks = usePlayerStore((s) => s.queueTracks);
@@ -34,16 +34,11 @@ const TrackCard = ({ track }) => {
     e.stopPropagation();
     const next = !showSimilar;
     setShowSimilar(next);
-    if (next && !similarTracks) {
-      fetchSimilarTracks(track._id);
-    }
+    if (next && !similarTracks) fetchSimilarTracks(track._id);
   };
 
   const playSimilar = (similarTrack, e) => {
     e.stopPropagation();
-    // A "more like this" list is its own short-lived queue — it shouldn't
-    // get silently extended by background library pagination the way the
-    // main library queue does.
     setQueue([track, ...similarTracks], "similar");
     playTrack(similarTrack);
   };
@@ -54,101 +49,85 @@ const TrackCard = ({ track }) => {
     toast.success(`Queue ready — ${similarTracks.length} tracks added`);
   };
 
+  const fmtDuration = (s) => {
+    if (!s) return null;
+    return `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+  };
+
   return (
     <div>
-      <motion.div
-        layout
-        whileHover={{ y: -1 }}
-        whileTap={{ scale: 0.995 }}
-        transition={{ type: "spring", stiffness: 400, damping: 30 }}
-        className={`group relative p-3 sm:p-4 rounded-2xl flex items-center gap-3 sm:gap-4 mb-2 cursor-pointer border ${
-          isCurrent
-            ? 'bg-gradient-to-r from-primary/15 to-secondary/10 border-primary/25'
-            : 'bg-base-200 hover:bg-base-300 border-transparent'
+      <div
+        className={`group relative flex items-center gap-3 py-2.5 px-2 -mx-2 cursor-pointer transition-colors duration-150 ${
+          isCurrent ? "bg-base-200" : "hover:bg-base-200/60"
         }`}
+        style={{
+          borderLeft: isCurrent ? "2px solid rgb(var(--c-accent))" : "2px solid transparent",
+        }}
         onClick={handlePlay}
       >
-        {/* Album Art / Icon */}
-        <div
-          className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center transition-colors duration-200 ${
-            isCurrent
-              ? 'bg-gradient-to-br from-primary to-secondary'
-              : 'bg-base-300 group-hover:bg-primary/15'
-          }`}
-        >
+        {/* Index */}
+        <span className="w-6 text-right text-xs tabular-nums text-subtle flex-shrink-0">
           {isTrackPlaying ? (
-            <div className="flex gap-1 items-end h-5">
-              <span className="w-1 bg-white animate-pulse" style={{ height: '40%', animationDelay: '0ms' }}></span>
-              <span className="w-1 bg-white animate-pulse" style={{ height: '100%', animationDelay: '150ms' }}></span>
-              <span className="w-1 bg-white animate-pulse" style={{ height: '60%', animationDelay: '300ms' }}></span>
-            </div>
+            <AudioLines size={13} className="text-primary ml-auto" />
           ) : (
-            <Music size={20} className={`sm:w-6 sm:h-6 ${isCurrent ? 'text-white' : 'text-base-content/50 group-hover:text-primary'}`} />
+            String(index + 1).padStart(2, "0")
           )}
+        </span>
+
+        {/* Artwork */}
+        <div className="w-9 h-9 rounded-md bg-base-300 flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <AudioLines size={15} className="text-subtle" />
         </div>
 
-        {/* Track Info */}
+        {/* Title / Artist */}
         <div className="flex-1 min-w-0">
-          <h3 className={`font-semibold text-sm sm:text-base truncate transition-colors ${isCurrent ? 'text-primary' : 'text-base-content'}`}>
+          <h3 className={`text-sm font-semibold truncate ${isCurrent ? "text-primary" : "text-base-content"}`}>
             {track.title}
           </h3>
-          <p className="text-xs sm:text-sm text-base-content/50 truncate">
-            {track.artist}
-          </p>
+          <p className="text-xs text-muted truncate">{track.artist}</p>
         </div>
 
-        {/* "More like this" toggle — only worth showing once this track has
-            acoustic features to compare against (uploaded post-feature, or
-            backfilled). Older tracks just don't show the button. */}
+        {/* "More like this" trigger — plain, no magic-button framing */}
         {track.audioFeatures?.energy != null && (
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            title="More like this"
-            className={`flex-shrink-0 btn btn-sm btn-circle ${
-              showSimilar
-                ? 'bg-primary/20 text-primary'
-                : 'btn-ghost hover:text-primary opacity-0 group-hover:opacity-100 sm:opacity-100'
-            }`}
+          <button
+            title="Similar tracks"
             onClick={toggleSimilar}
+            className={`text-[11px] font-medium flex-shrink-0 px-1.5 opacity-0 group-hover:opacity-100 transition-opacity ${
+              showSimilar ? "text-primary opacity-100" : "text-subtle hover:text-base-content"
+            }`}
           >
-            <Sparkles size={15} />
-          </motion.button>
+            Similar
+          </button>
         )}
 
-        {/* Play/Pause Button */}
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          className={`flex-shrink-0 btn btn-sm btn-circle ${
+        {/* Duration */}
+        {fmtDuration(track.duration) && (
+          <span className="text-xs text-subtle tabular-nums flex-shrink-0 w-9 text-right">
+            {fmtDuration(track.duration)}
+          </span>
+        )}
+
+        {/* Play/Pause — appears on hover, or always if active */}
+        <button
+          className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-opacity ${
             isCurrent
-              ? 'bg-gradient-to-br from-primary to-secondary text-white'
-              : 'btn-ghost hover:text-primary opacity-0 group-hover:opacity-100 sm:opacity-100'
+              ? "bg-primary text-primary-content opacity-100"
+              : "text-base-content opacity-0 group-hover:opacity-100 hover:bg-base-300"
           }`}
           onClick={(e) => {
             e.stopPropagation();
             handlePlay();
           }}
         >
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.span
-              key={isTrackPlaying ? "pause" : "play"}
-              initial={{ opacity: 0, scale: 0.6, rotate: -30 }}
-              animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              exit={{ opacity: 0, scale: 0.6, rotate: 30 }}
-              transition={{ duration: 0.15 }}
-              className="flex items-center justify-center"
-            >
-              {isTrackPlaying ? (
-                <Pause size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" />
-              ) : (
-                <Play size={16} className="sm:w-[18px] sm:h-[18px]" fill="currentColor" />
-              )}
-            </motion.span>
-          </AnimatePresence>
-        </motion.button>
-      </motion.div>
+          {isTrackPlaying ? (
+            <Pause size={13} fill="currentColor" />
+          ) : (
+            <Play size={13} fill="currentColor" className="ml-0.5" />
+          )}
+        </button>
+      </div>
 
-      {/* "More like this" panel — acoustic-similarity results (real DSP
-          feature vectors + cosine similarity, computed server-side) */}
+      {/* Similar-tracks panel — technical framing, not "magic" */}
       <AnimatePresence initial={false}>
         {showSimilar && (
           <motion.div
@@ -159,36 +138,45 @@ const TrackCard = ({ track }) => {
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="overflow-hidden"
           >
-            <div className="ml-4 sm:ml-8 mb-3 pl-3 sm:pl-4 border-l-2 border-primary/20 space-y-1">
+            <div className="ml-9 mb-2 pl-4 border-l border-edge py-2">
               {similarLoading ? (
-                <div className="flex items-center gap-2 text-xs text-base-content/50 py-2">
-                  <Loader2 size={13} className="animate-spin" />
+                <div className="flex items-center gap-2 text-xs text-subtle py-1.5">
+                  <Loader2 size={12} className="animate-spin" />
                   Analyzing sound...
                 </div>
               ) : !similarTracks || similarTracks.length === 0 ? (
-                <p className="text-xs text-base-content/50 py-2">No similar tracks found yet.</p>
+                <p className="text-xs text-subtle py-1.5">No similar tracks found yet.</p>
               ) : (
                 <>
+                  <div className="mb-2">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-subtle">
+                      Similar to {track.title}
+                    </p>
+                    <p className="text-[10px] text-subtle/80 mt-0.5">
+                      energy · tempo · spectral profile
+                    </p>
+                  </div>
+
                   <button
                     onClick={queueAllMatches}
-                    className="flex items-center gap-1.5 text-[11px] text-primary/80 hover:text-primary px-2 py-1 -mt-1 mb-1"
+                    className="flex items-center gap-1.5 text-[11px] text-primary hover:opacity-80 mb-1.5"
                   >
-                    <ListPlus size={12} />
-                    Queue all {similarTracks.length} matches
+                    <ListPlus size={11} />
+                    Queue all {similarTracks.length}
                   </button>
+
                   {similarTracks.map((s) => (
                     <div
                       key={s._id}
-                      className="flex items-center gap-3 p-2 rounded-lg hover:bg-base-200 cursor-pointer"
+                      className="flex items-center gap-2 py-1.5 cursor-pointer hover:text-primary"
                       onClick={(e) => playSimilar(s, e)}
                     >
-                      <Play size={12} className="text-base-content/40 flex-shrink-0" />
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs sm:text-sm truncate">{s.title}</p>
-                        <p className="text-[11px] text-base-content/50 truncate">{s.artist}</p>
+                        <p className="text-xs font-medium truncate">{s.title}</p>
+                        <p className="text-[11px] text-muted truncate">{s.artist}</p>
                       </div>
-                      <span className="text-[10px] text-primary/70 flex-shrink-0">
-                        {Math.round(s.similarity * 100)}% match
+                      <span className="text-xs font-semibold tabular-nums text-base-content flex-shrink-0">
+                        {Math.round(s.similarity * 100)}%
                       </span>
                     </div>
                   ))}

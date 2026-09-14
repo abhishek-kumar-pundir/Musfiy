@@ -4,91 +4,82 @@
 
 /* ============================================================
    DESIGN TOKENS
-   A cool blue/cyan palette with real light + dark modes — not a
-   theme picker, just two considered variants of one system. Values
-   are raw "R G B" triples so Tailwind's <alpha-value> opacity
-   modifiers (bg-primary/20, text-base-content/60, etc.) keep working
-   everywhere they're already used in the app.
+   One accent (lime), a real neutral hierarchy, real light + dark.
+   No purple / pink / cyan / violet / blue-gradient — that repetition
+   is what made this look generated in the first place.
    ============================================================ */
 :root,
 [data-theme="dark"] {
-  /* Surfaces — deep blue-black, not flat gray */
-  --c-bg-0: 8 10 15;      /* page background */
-  --c-bg-1: 15 18 25;     /* resting card / row surface */
-  --c-bg-2: 22 27 37;     /* hover / elevated / popover surface */
+  --c-bg-0: 9 10 13;      /* #090A0D — page */
+  --c-bg-1: 16 18 23;     /* #101217 — surface */
+  --c-bg-2: 21 24 32;     /* #151820 — surface hover */
+  --c-border: 34 38 49;   /* #222631 */
 
-  --c-text: 226 232 240;  /* cool off-white (slate-200) */
+  --c-text: 244 245 247;   /* #F4F5F7 */
+  --c-muted: 142 148 158;  /* #8E949E — artist names, metadata */
+  --c-subtle: 94 100 111;  /* #5E646F — timestamps, tiny labels */
 
-  /* The accent: blue -> cyan. Cool, technical, deliberate — used on
-     interactive/active elements only, not sprayed on every card. */
-  --c-accent: 59 130 246;    /* blue-500 */
-  --c-accent-2: 34 211 238;  /* cyan-400 */
-  --c-on-accent: 255 255 255;
+  --c-accent: 200 255 61;  /* #C8FF3D — lime. The ONE accent. */
+  --c-on-accent: 9 10 13;  /* near-black text/icons on the lime fill */
 
-  --c-danger: 248 113 113;
-  --c-success: 52 211 153;
+  --c-danger: 244 114 114;
+  --c-success: 74 222 148;
   --c-warning: 250 204 90;
   --c-info: 96 200 250;
 
-  --c-border: 226 232 240;
-
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.35);
-  --shadow-md: 0 8px 20px -8px rgb(0 0 0 / 0.45);
-  --shadow-lg: 0 16px 36px -12px rgb(0 0 0 / 0.55);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-md: 0 8px 20px -8px rgb(0 0 0 / 0.5);
+  --shadow-lg: 0 16px 36px -12px rgb(0 0 0 / 0.6);
 }
 
 [data-theme="light"] {
-  --c-bg-0: 248 250 252;   /* slate-50 page background */
-  --c-bg-1: 255 255 255;   /* white cards */
-  --c-bg-2: 241 245 249;   /* slate-100 hover surface */
+  --c-bg-0: 250 250 251;
+  --c-bg-1: 255 255 255;
+  --c-bg-2: 243 244 246;
+  --c-border: 228 231 236;
 
-  --c-text: 15 23 42;      /* slate-900 */
+  --c-text: 17 19 23;
+  --c-muted: 100 106 116;
+  --c-subtle: 140 146 156;
 
-  --c-accent: 37 99 235;    /* blue-600 (deeper for contrast on white) */
-  --c-accent-2: 8 145 178;  /* cyan-600 */
+  /* Same lime hue, deepened for legible contrast on a white surface —
+     pure #C8FF3D reads great as a fill, badly as small text on white. */
+  --c-accent: 92 122 0;
   --c-on-accent: 255 255 255;
 
   --c-danger: 220 38 38;
   --c-success: 22 163 74;
-  --c-warning: 202 138 4;
+  --c-warning: 180 130 4;
   --c-info: 2 132 199;
 
-  --c-border: 15 23 42;
-
-  --shadow-sm: 0 1px 2px rgb(15 23 42 / 0.06);
-  --shadow-md: 0 8px 20px -8px rgb(15 23 42 / 0.12);
-  --shadow-lg: 0 16px 36px -12px rgb(15 23 42 / 0.16);
+  --shadow-sm: 0 1px 2px rgb(15 19 23 / 0.06);
+  --shadow-md: 0 8px 20px -8px rgb(15 19 23 / 0.12);
+  --shadow-lg: 0 16px 36px -12px rgb(15 19 23 / 0.16);
 }
 
 @layer base {
-  html, body, #root {
-    height: 100%;
-  }
+  html, body, #root { height: 100%; }
 
   body {
     @apply bg-base-100 text-base-content antialiased;
     font-feature-settings: "cv11", "ss01";
     text-rendering: optimizeLegibility;
-    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
-  ::selection {
-    background: rgb(var(--c-accent) / 0.3);
-  }
+  ::selection { background: rgb(var(--c-accent) / 0.3); }
 
   ::-webkit-scrollbar { width: 10px; height: 10px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: rgb(var(--c-border) / 0.14);
+    background: rgb(var(--c-border));
     border-radius: 999px;
     border: 2px solid rgb(var(--c-bg-0));
   }
-  ::-webkit-scrollbar-thumb:hover { background: rgb(var(--c-border) / 0.24); }
 
   input[type="range"] {
     -webkit-appearance: none;
     appearance: none;
-    height: 4px;
+    height: 3px;
     border-radius: 999px;
     background: rgb(var(--c-bg-2));
     accent-color: rgb(var(--c-accent));
@@ -96,34 +87,33 @@
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 12px;
-    height: 12px;
+    width: 11px;
+    height: 11px;
     border-radius: 999px;
     background: rgb(var(--c-accent));
     cursor: pointer;
-    transition: transform 0.15s ease;
   }
-  input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
 }
 
 /* ============================================================
-   COMPONENT LAYER — same class API the app already calls
+   COMPONENT LAYER — flat, no gradients, tight radius hierarchy
    ============================================================ */
 @layer components {
 
   .btn {
     @apply inline-flex items-center justify-center gap-2 select-none whitespace-nowrap
-           rounded-lg px-4 py-2 text-sm font-medium
-           transition-all duration-200 ease-out
+           px-4 py-2 text-sm font-semibold
+           transition-colors duration-150 ease-out
            disabled:opacity-40 disabled:pointer-events-none;
     background: rgb(var(--c-bg-2));
     color: rgb(var(--c-text));
+    border-radius: 8px;
   }
-  .btn:hover:not(:disabled) { filter: brightness(1.1); }
-  .btn:active:not(:disabled) { transform: scale(0.97); }
+  .btn:hover:not(:disabled) { background: rgb(var(--c-border)); }
+  .btn:active:not(:disabled) { transform: scale(0.98); }
 
-  .btn-ghost { background: transparent; box-shadow: none; }
-  .btn-ghost:hover:not(:disabled) { background: rgb(var(--c-bg-1)); filter: none; }
+  .btn-ghost { background: transparent; }
+  .btn-ghost:hover:not(:disabled) { background: rgb(var(--c-bg-1)); }
 
   .btn-link {
     @apply bg-transparent underline-offset-4 hover:underline p-0 h-auto;
@@ -131,10 +121,10 @@
   }
 
   .btn-primary {
-    background: linear-gradient(135deg, rgb(var(--c-accent)), rgb(var(--c-accent-2)));
+    background: rgb(var(--c-accent));
     color: rgb(var(--c-on-accent));
-    box-shadow: var(--shadow-sm);
   }
+  .btn-primary:hover:not(:disabled) { background: rgb(var(--c-accent) / 0.88); }
 
   .btn-error {
     background: rgb(var(--c-danger) / 0.14);
@@ -143,34 +133,31 @@
   .btn-error:hover:not(:disabled) { background: rgb(var(--c-danger) / 0.22); }
 
   .btn-circle { @apply rounded-full p-0 aspect-square; }
-  .btn-sm { @apply text-xs px-3 py-1.5 h-9 min-h-0; }
-  .btn-xs { @apply text-[11px] px-2 py-1 h-7 min-h-0; }
+  .btn-sm { @apply text-xs px-3 py-1.5 h-8 min-h-0; }
+  .btn-xs { @apply text-[11px] px-2 py-1 h-6 min-h-0; }
   .btn-md { @apply h-10; }
 
   .card {
     background: rgb(var(--c-bg-1));
-    border: 1px solid rgb(var(--c-border) / 0.08);
-    border-radius: theme('borderRadius.xl');
-    box-shadow: var(--shadow-sm);
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 10px;
   }
   .card-body { @apply p-5; }
 
   .divider {
     @apply flex items-center text-xs my-2;
-    color: rgb(var(--c-text) / 0.4);
+    color: rgb(var(--c-subtle));
   }
   .divider::before, .divider::after {
     content: "";
     flex: 1;
     height: 1px;
-    background: rgb(var(--c-border) / 0.1);
+    background: rgb(var(--c-border));
   }
   .divider:not(:empty)::before { margin-right: 0.75rem; }
   .divider:not(:empty)::after { margin-left: 0.75rem; }
 
-  .avatar.placeholder > div {
-    @apply flex items-center justify-center;
-  }
+  .avatar.placeholder > div { @apply flex items-center justify-center; }
 
   .dropdown { @apply relative inline-block; }
   .dropdown-content {
@@ -184,23 +171,23 @@
 
   .menu { @apply flex flex-col gap-0.5; }
   .menu-title {
-    @apply text-xs font-semibold uppercase tracking-wide;
-    color: rgb(var(--c-text) / 0.45);
+    @apply text-[11px] font-semibold uppercase tracking-wider;
+    color: rgb(var(--c-subtle));
   }
 
   .input, .textarea {
-    @apply w-full rounded-lg px-4 py-2.5 text-sm outline-none
-           transition-colors duration-150;
+    @apply w-full px-3.5 py-2.5 text-sm outline-none transition-colors duration-150;
     background: rgb(var(--c-bg-1));
-    border: 1px solid rgb(var(--c-border) / 0.1);
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 8px;
     color: rgb(var(--c-text));
   }
-  .input::placeholder, .textarea::placeholder { color: rgb(var(--c-text) / 0.35); }
+  .input::placeholder, .textarea::placeholder { color: rgb(var(--c-subtle)); }
   .input:focus, .textarea:focus {
-    border-color: rgb(var(--c-accent) / 0.6);
-    box-shadow: 0 0 0 3px rgb(var(--c-accent) / 0.15);
+    border-color: rgb(var(--c-accent) / 0.7);
+    box-shadow: 0 0 0 3px rgb(var(--c-accent) / 0.12);
   }
-  .input-bordered { border-color: rgb(var(--c-border) / 0.14); }
+  .input-bordered { border-color: rgb(var(--c-border)); }
   .input-primary { border-color: rgb(var(--c-accent) / 0.5); }
   .input-sm { @apply py-1.5 text-xs; }
   .input-md { @apply py-2.5 text-sm; }
@@ -215,25 +202,24 @@
 
   .modal {
     @apply fixed inset-0 z-[200] flex items-center justify-center p-4
-           opacity-0 invisible pointer-events-none transition-all duration-200;
+           opacity-0 invisible pointer-events-none transition-opacity duration-200;
     background: rgb(0 0 0 / 0.55);
-    backdrop-filter: blur(4px);
   }
   .modal-open { @apply opacity-100 visible pointer-events-auto; }
   .modal-box {
     background: rgb(var(--c-bg-1));
-    border: 1px solid rgb(var(--c-border) / 0.08);
-    border-radius: theme('borderRadius.xl');
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 14px;
     box-shadow: var(--shadow-lg);
     @apply w-full max-w-md p-6 max-h-[90vh] overflow-y-auto;
   }
 
-  .navbar { @apply flex items-center min-h-16; }
+  .navbar { @apply flex items-center min-h-14; }
 
   .alert {
     @apply flex items-center gap-3 rounded-lg px-4 py-3 text-sm;
     background: rgb(var(--c-bg-2));
-    border: 1px solid rgb(var(--c-border) / 0.1);
+    border: 1px solid rgb(var(--c-border));
   }
   .alert-error {
     background: rgb(var(--c-danger) / 0.1);

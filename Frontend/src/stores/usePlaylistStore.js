@@ -3,6 +3,7 @@ import api from "../lib/api";
 
 export const usePlaylistStore = create((set) => ({
   playlist: [],
+  lastMood: "",
   loading: false,
   error: null,
 
@@ -14,6 +15,7 @@ export const usePlaylistStore = create((set) => ({
 
       set({
         playlist: res.data.playlist,
+        lastMood: moodPrompt,
         loading: false,
       });
 

@@ -27,10 +27,7 @@ const AudioVisualizer = ({ analyser, isPlaying }) => {
       ctx.clearRect(0, 0, width, height);
 
       const barWidth = width / BAR_COUNT;
-      const gradient = ctx.createLinearGradient(0, height, 0, 0);
-      gradient.addColorStop(0, "rgb(124 92 246)");
-      gradient.addColorStop(1, "rgb(219 71 145)");
-      ctx.fillStyle = gradient;
+      ctx.fillStyle = "rgb(200 255 61)"; // the one accent — no gradient
 
       for (let i = 0; i < BAR_COUNT; i++) {
         const value = data[i * step] || 0;

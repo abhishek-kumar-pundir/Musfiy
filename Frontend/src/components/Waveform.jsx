@@ -32,16 +32,16 @@ const Waveform = ({ peaks, currentTime, duration, onSeek }) => {
   };
 
   const bars = peaks.map(([min, max], i) => {
-    const height = Math.max((max - min) * mid, 1.5);
-    const y = mid - max * mid;
+    const height = Math.max((max - min) * mid * 0.75, 1); // 0.75: thinner, denser feel
+    const y = mid - (max * mid * 0.75);
     return (
       <rect
         key={i}
         x={i * barWidth}
         y={y}
-        width={Math.max(barWidth - 1, 0.6)}
+        width={Math.max(barWidth - 1.2, 0.5)}
         height={height}
-        rx={1}
+        rx={0.75}
       />
     );
   });
@@ -50,7 +50,7 @@ const Waveform = ({ peaks, currentTime, duration, onSeek }) => {
     <svg
       viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
       preserveAspectRatio="none"
-      className="w-full h-10 sm:h-12 cursor-pointer"
+      className="w-full h-6 sm:h-7 cursor-pointer"
       onClick={handleSeek}
     >
       <defs>
@@ -59,8 +59,8 @@ const Waveform = ({ peaks, currentTime, duration, onSeek }) => {
         </clipPath>
       </defs>
 
-      {/* Base layer: full waveform, unplayed color */}
-      <g className="fill-base-300">{bars}</g>
+      {/* Base layer: full waveform, muted unplayed color */}
+      <g style={{ fill: "rgb(var(--c-subtle))" }}>{bars}</g>
 
       {/* Played layer: identical bars, clipped to the continuous progress
           position, played color — this is the moving "flow" */}
