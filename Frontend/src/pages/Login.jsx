@@ -2,14 +2,25 @@ import { useState } from "react";
 import { useAuthStore } from "../stores/useAuthStore";
 import { useNavigate } from "react-router-dom";
 import { Loader2, AlertCircle } from "lucide-react";
+import toast from "react-hot-toast";
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
 
-  const { login, register, loading, error } = useAuthStore();
+  const { login, register, loading, error, clearError } = useAuthStore();
 
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+
+  const handleInputChange = (field, value) => {
+    if (error && clearError) clearError();
+    setForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleToggleMode = () => {
+    if (clearError) clearError();
+    setIsLogin((prev) => !prev);
+  };
 
   const handleSubmit = async () => {
     let res;
@@ -18,7 +29,12 @@ const Login = () => {
     } else {
       res = await register(form.name, form.email, form.password);
     }
-    if (res?.success) navigate("/");
+    if (res?.success) {
+      toast.success(isLogin ? "Logged in successfully" : "Account created successfully");
+      navigate("/");
+    } else if (res?.message) {
+      toast.error(res.message);
+    }
   };
 
   const onEnter = (e) => {
@@ -51,7 +67,7 @@ const Login = () => {
                   placeholder="Your name"
                   className="input"
                   value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onChange={(e) => handleInputChange("name", e.target.value)}
                   onKeyDown={onEnter}
                 />
               </div>
@@ -64,7 +80,7 @@ const Login = () => {
                 placeholder="you@example.com"
                 className="input"
                 value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                onChange={(e) => handleInputChange("email", e.target.value)}
                 onKeyDown={onEnter}
               />
             </div>
@@ -76,7 +92,7 @@ const Login = () => {
                 placeholder="••••••••"
                 className="input"
                 value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                onChange={(e) => handleInputChange("password", e.target.value)}
                 onKeyDown={onEnter}
               />
             </div>
@@ -112,7 +128,7 @@ const Login = () => {
             </p>
             <button
               className="btn-link text-sm font-semibold"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={handleToggleMode}
             >
               {isLogin ? "Create an account" : "Log in"}
             </button>
