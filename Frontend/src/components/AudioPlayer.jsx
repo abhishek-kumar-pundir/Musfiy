@@ -25,7 +25,7 @@ const AudioPlayer = () => {
   const [isMuted, setIsMuted] = useState(false);
   const [loop, setLoop] = useState(false);
   const [isSeeking, setIsSeeking] = useState(false);
-  const [tracked, setTracked] = useState(false);
+  const trackedRef = useRef(false);
 
   const { currentTrack, isPlaying, next, prev, shuffle } = usePlayerStore();
 
@@ -33,6 +33,7 @@ const AudioPlayer = () => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    trackedRef.current = false;
     audio.load();
 
     const playWhenReady = () => {
@@ -76,6 +77,15 @@ const AudioPlayer = () => {
     return () => cancelAnimationFrame(raf);
   }, [isSeeking]);
 
+  const fmt = (t) => (isNaN(t) ? "0:00" : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`);
+
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    if (isMuted) { audio.volume = volume; setIsMuted(false); }
+    else { audio.volume = 0; setIsMuted(true); }
+  };
+
   useEffect(() => {
     const handler = (e) => {
       const active = document.activeElement;
@@ -88,16 +98,8 @@ const AudioPlayer = () => {
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, []);
-
-  const fmt = (t) => (isNaN(t) ? "0:00" : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`);
-
-  const toggleMute = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    if (isMuted) { audio.volume = volume; setIsMuted(false); }
-    else { audio.volume = 0; setIsMuted(true); }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [next, prev, isMuted, volume]);
 
   const handleSeek = (e) => {
     const rect = e.target.getBoundingClientRect();
@@ -122,7 +124,7 @@ const AudioPlayer = () => {
     setCurrentTime(newTime);
   };
 
-  useEffect(() => { setTracked(false); }, [currentTrack]);
+
 
   const prevTrackIdRef = useRef(null);
   const prefetchedUrlsRef = useRef(new Set());
@@ -149,7 +151,9 @@ const AudioPlayer = () => {
           const predictedTrack = queue.find((t) => t._id === predictedId);
           if (predictedTrack) nextUrl = predictedTrack.fileUrl;
         }
-      } catch (err) {}
+      } catch {
+        // Fallback to sequential queue if prediction is unavailable
+      }
 
       if (!nextUrl) {
         const { queue, currentIndex } = usePlayerStore.getState();
@@ -336,8 +340,8 @@ const AudioPlayer = () => {
           }
         }}
         onPlay={async () => {
-          if (!tracked && currentTrack?._id) {
-            setTracked(true);
+          if (!trackedRef.current && currentTrack?._id) {
+            trackedRef.current = true;
             try { await api.post(`/api/track/play/${currentTrack._id}`); }
             catch (err) { console.log("Play tracking failed:", err); }
           }

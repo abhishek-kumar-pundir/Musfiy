@@ -2,8 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import MoodInput from "../components/MoodInput";
 import PlaylistCard from "../components/PlaylistCard";
 import TrackCard from "../components/TrackCard";
-import UploadTrackModal from "../components/UploadTrackModal";
 import AudioPlayer from "../components/AudioPlayer";
+import { lazyComponent } from "react-fastload";
+
+const UploadTrackModal = lazyComponent(() => import("../components/UploadTrackModal"), {
+  priority: "LOW",
+  strategy: "lazy",
+  fallback: <div className="card p-6 h-36 bg-base-200/40 animate-pulse rounded-lg" />,
+});
 
 import { useTrackStore } from "../stores/useTrackStore";
 import { useStatsStore } from "../stores/useStatsStore";
@@ -46,6 +52,7 @@ const Dashboard = () => {
   useEffect(() => {
     fetchAllTracks();
     fetchTopTracks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

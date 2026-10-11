@@ -2,17 +2,37 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Stats from "./pages/Stats";
 import { useAuthStore } from "./stores/useAuthStore";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { lazyComponent } from "react-fastload";
+
+const Dashboard = lazyComponent(() => import("./pages/Dashboard"), {
+  priority: "HIGH",
+  strategy: "lazy",
+  fallback: (
+    <div className="min-h-[calc(100vh-56px)] flex items-center justify-center bg-base-100">
+      <Loader2 size={24} className="animate-spin text-subtle" />
+    </div>
+  ),
+});
+
+const Stats = lazyComponent(() => import("./pages/Stats"), {
+  priority: "NORMAL",
+  strategy: "lazy",
+  fallback: (
+    <div className="h-full flex items-center justify-center p-8">
+      <Loader2 size={20} className="animate-spin text-subtle" />
+    </div>
+  ),
+});
 
 function App() {
   const { isAuthenticated, checkAuth, loading } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (loading) {

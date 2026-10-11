@@ -3,14 +3,15 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-
+import { FastLoadProvider } from 'react-fastload';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <App />
-      <Toaster/>
+      <FastLoadProvider strategy="adaptive" concurrency={4} preloadDistance={1000}>
+        <App />
+      </FastLoadProvider>
     </BrowserRouter>
   </StrictMode>,
 )
+

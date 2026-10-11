@@ -23,7 +23,7 @@ export const useStatsStore = create((set) => ({
       set({ loading: false });
       return res.data;
 
-    } catch (error) {
+    } catch {
       set({
         loading: false,
         error: "Failed to fetch stats",

@@ -50,7 +50,7 @@ export const useTrackStore = create((set, get) => ({
 
       set({ loading: false });
       return res.data;
-    } catch (error) {
+    } catch {
       set({
         loading: false,
         error: "Failed to load tracks",
@@ -88,7 +88,7 @@ export const useTrackStore = create((set, get) => ({
 
       set({ loadingMore: false });
       return res.data;
-    } catch (error) {
+    } catch {
       set({
         loadingMore: false,
         error: "Failed to load more tracks",
@@ -108,7 +108,7 @@ export const useTrackStore = create((set, get) => ({
 
       set({ loading: false });
       return res.data;
-    } catch (error) {
+    } catch {
       set({
         loading: false,
         error: "Failed to load emotion-based tracks",
@@ -137,7 +137,7 @@ export const useTrackStore = create((set, get) => ({
       }));
 
       return tracks;
-    } catch (error) {
+    } catch {
       set((state) => ({
         similarLoading: { ...state.similarLoading, [trackId]: false },
       }));

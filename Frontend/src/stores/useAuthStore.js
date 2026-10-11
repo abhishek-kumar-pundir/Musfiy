@@ -84,7 +84,7 @@ export const useAuthStore = create((set) => ({
       set({ loading: false });
       return res.data;
 
-    } catch (error) {
+    } catch {
       set({
         loading: false,
         error: "Logout failed",
@@ -112,7 +112,7 @@ export const useAuthStore = create((set) => ({
         loading: false,
       });
     }
-  } catch (err) {
+  } catch {
     set({ isAuthenticated: false, loading: false });
   }
 },

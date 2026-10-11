@@ -20,12 +20,17 @@ build/
 .env.production
 .env.test
 .env.*      # ANY env file with pattern .env.something
+!.env.example
 
 # Also ignore env inside backend & frontend
 backend/.env
 backend/.env.*
+!backend/.env.example
+!Backend/.env.example
 frontend/.env
 frontend/.env.*
+!frontend/.env.example
+!Frontend/.env.example
 
 # ===========================
 # Logs

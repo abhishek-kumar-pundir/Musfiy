@@ -1,12 +1,15 @@
 import { useEffect } from "react";
 import { useStatsStore } from "../stores/useStatsStore";
-import { AudioLines, Loader2 } from "lucide-react";
+import { AudioLines, Loader2, Activity } from "lucide-react";
+import { useFastLoadMetrics } from "react-fastload";
 
 const Stats = () => {
   const { topTracks, fetchTopTracks, loading, cached } = useStatsStore();
+  const metrics = useFastLoadMetrics();
 
   useEffect(() => {
     fetchTopTracks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -72,6 +75,33 @@ const Stats = () => {
             ))}
           </div>
         )}
+      </div>
+
+      {/* ReactFastLoad Metrics Footer */}
+      <div className="mt-4 pt-3 border-t border-edge/60 text-[11px] text-subtle space-y-1">
+        <div className="flex items-center justify-between">
+          <span className="flex items-center gap-1 font-semibold text-[10px] uppercase tracking-wider text-muted">
+            <Activity size={11} className="text-primary" />
+            FastLoad Vitals
+          </span>
+          <span className="text-[10px] text-subtle">
+            {metrics.deferredRequests > 0 ? `${metrics.deferredRequests} deferred` : "optimized"}
+          </span>
+        </div>
+        <div className="grid grid-cols-3 gap-1 pt-1 text-center font-mono text-[10px]">
+          <div className="bg-base-200/50 rounded py-1">
+            <span className="text-muted block text-[9px]">FCP</span>
+            <span className="text-base-content font-semibold">{metrics.fcp ? `${Math.round(metrics.fcp)}ms` : "—"}</span>
+          </div>
+          <div className="bg-base-200/50 rounded py-1">
+            <span className="text-muted block text-[9px]">LCP</span>
+            <span className="text-base-content font-semibold">{metrics.lcp ? `${Math.round(metrics.lcp)}ms` : "—"}</span>
+          </div>
+          <div className="bg-base-200/50 rounded py-1">
+            <span className="text-muted block text-[9px]">CLS</span>
+            <span className="text-base-content font-semibold">{metrics.cls != null ? metrics.cls : "0"}</span>
+          </div>
+        </div>
       </div>
 
       <style>{`
