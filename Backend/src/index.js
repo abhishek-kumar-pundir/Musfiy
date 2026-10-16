@@ -15,6 +15,8 @@ import { fileURLToPath } from 'url';
 
 
 
+import { compressionMiddleware } from './middleware/compression.js';
+
 dotenv.config();
 const PORT = process.env.PORT || 6001;
 const app  = express();
@@ -35,6 +37,7 @@ app.use(cors({
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(compressionMiddleware);
 
 
 // app.use("/uploads",cors(), express.static("uploads"));

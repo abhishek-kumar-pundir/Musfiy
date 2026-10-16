@@ -7,6 +7,7 @@ import {
   deleteTrack,
   timePlayed,
   getSimilarTracks,
+  getTrackWaveform,
 } from "../controllers/trackController.js";
 
 import { upload } from "../middleware/multer.js";
@@ -17,6 +18,7 @@ const router = express.Router();
 router.get("/all", getAllTracks);
 router.get("/emotion/:emotion", getEmotionTracks);
 router.get("/:id/similar", getSimilarTracks);
+router.get("/:id/waveform", getTrackWaveform);
 
 router.post("/upload", userAuth, upload.single("track"), uploadTrack);
 

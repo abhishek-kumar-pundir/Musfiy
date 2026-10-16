@@ -44,6 +44,36 @@ const AudioPlayer = () => {
     return () => audio.removeEventListener("loadeddata", playWhenReady);
   }, [currentTrack]);
 
+  // Lazy-load waveform peaks on demand only for the actively playing track
+  useEffect(() => {
+    if (!currentTrack?._id) return;
+    if (currentTrack.waveformPeaks && currentTrack.waveformPeaks.length > 0) return;
+
+    let isMounted = true;
+    api
+      .get(`/api/track/${currentTrack._id}/waveform`)
+      .then((res) => {
+        if (isMounted && res.data?.waveformPeaks?.length) {
+          usePlayerStore.setState((state) => {
+            if (state.currentTrack?._id === currentTrack._id) {
+              return {
+                currentTrack: {
+                  ...state.currentTrack,
+                  waveformPeaks: res.data.waveformPeaks,
+                },
+              };
+            }
+            return state;
+          });
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentTrack?._id]);
+
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;

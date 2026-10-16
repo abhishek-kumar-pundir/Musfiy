@@ -24,10 +24,13 @@ const parsePagination = (req) => {
 export const getAllTracks = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req);
+    const includePeaks = req.query.includePeaks === "true";
 
     // .lean() skips Mongoose document hydration since we're only ever
     // reading this data for display -> cheaper to serialize, faster response.
+    // Exclude heavy waveformPeaks (400 coordinates per track) from list queries.
     const tracksQuery = Track.find()
+      .select(includePeaks ? "" : "-waveformPeaks")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit + 1) // fetch one extra to cheaply know if there's another page
@@ -62,11 +65,13 @@ export const getAllTracks = async (req, res) => {
 
 export const getEmotionTracks = async (req, res) => {
   const { emotion } = req.params;
+  const includePeaks = req.query.includePeaks === "true";
 
   try {
     const { page, limit, skip } = parsePagination(req);
 
     const tracks = await Track.find({ emotionTag: emotion })
+      .select(includePeaks ? "" : "-waveformPeaks")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit + 1)
@@ -253,7 +258,7 @@ export const getSimilarTracks = async (req, res) => {
       _id: { $ne: id },
       "audioFeatures.energy": { $ne: null },
     })
-      .select("title artist fileUrl emotionTag audioFeatures waveformPeaks")
+      .select("title artist fileUrl emotionTag audioFeatures")
       .limit(SIMILARITY_CANDIDATE_CAP)
       .lean();
 
@@ -282,6 +287,29 @@ export const getSimilarTracks = async (req, res) => {
       }));
 
     return res.status(200).json({ success: true, tracks: ranked });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
+  }
+};
+
+/**
+ * On-demand endpoint to fetch waveform peaks for a single track when played.
+ * Avoids transferring 400 float coordinates per track across list queries.
+ */
+export const getTrackWaveform = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const track = await Track.findById(id).select("waveformPeaks").lean();
+
+    if (!track) {
+      return res.status(404).json({ success: false, message: "Track not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      waveformPeaks: track.waveformPeaks || [],
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ success: false, message: "Internal Server Error" });
