@@ -4,6 +4,9 @@ import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router-dom';
 import { FastLoadProvider } from 'react-fastload';
+import { initPerformanceTelemetry } from './lib/performanceTelemetry.js';
+
+initPerformanceTelemetry();
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

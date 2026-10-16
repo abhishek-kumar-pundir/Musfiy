@@ -16,6 +16,7 @@ import { fileURLToPath } from 'url';
 
 
 import { compressionMiddleware } from './middleware/compression.js';
+import { serverTimingMiddleware } from './middleware/timing.js';
 
 dotenv.config();
 const PORT = process.env.PORT || 6001;
@@ -34,6 +35,7 @@ app.use(cors({
 
 
 
+app.use(serverTimingMiddleware);
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
