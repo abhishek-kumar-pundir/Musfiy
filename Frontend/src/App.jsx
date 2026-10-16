@@ -1,11 +1,20 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
-import Login from "./pages/Login";
 import { useAuthStore } from "./stores/useAuthStore";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
 import { lazyComponent } from "react-fastload";
+
+const Login = lazyComponent(() => import("./pages/Login"), {
+  priority: "HIGH",
+  strategy: "lazy",
+  fallback: (
+    <div className="min-h-screen w-full bg-base-100 flex items-center justify-center">
+      <Loader2 size={24} className="animate-spin text-subtle" />
+    </div>
+  ),
+});
 
 const Dashboard = lazyComponent(() => import("./pages/Dashboard"), {
   priority: "HIGH",

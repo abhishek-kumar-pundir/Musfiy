@@ -97,6 +97,8 @@ const AudioPlayer = () => {
   }, [currentTrack, isSeeking, volume]);
 
   useEffect(() => {
+    if (!isPlaying || isSeeking) return;
+
     let raf;
     const tick = () => {
       const audio = audioRef.current;
@@ -104,8 +106,10 @@ const AudioPlayer = () => {
       raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [isSeeking]);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [isPlaying, isSeeking]);
 
   const fmt = (t) => (isNaN(t) ? "0:00" : `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`);
 

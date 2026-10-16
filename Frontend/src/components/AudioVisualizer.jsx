@@ -4,6 +4,10 @@ import { useEffect, useRef } from "react";
 // frequency data from the currently playing <audio> element via the Web
 // Audio API — this is genuinely reacting to the track's spectrum each
 // frame, not a decorative CSS pulse timed to guesswork.
+//
+// Performance optimization: When paused, RAF loop is stopped completely
+// and the idle state is drawn once, eliminating continuous 60 FPS canvas
+// redraws during paused state.
 const BAR_COUNT = 24;
 
 const AudioVisualizer = ({ analyser, isPlaying }) => {
@@ -19,26 +23,42 @@ const AudioVisualizer = ({ analyser, isPlaying }) => {
     const data = new Uint8Array(bufferLength);
     const step = Math.max(1, Math.floor(bufferLength / BAR_COUNT));
 
+    const width = canvas.width;
+    const height = canvas.height;
+    const barWidth = width / BAR_COUNT;
+    const barDrawWidth = Math.max(barWidth - 2, 1);
+    const fillStyle = "rgb(200 255 61)"; // accent color
+
+    // If audio is paused, draw idle resting bars once and do NOT spin RAF
+    if (!isPlaying) {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = fillStyle;
+      for (let i = 0; i < BAR_COUNT; i++) {
+        const x = i * barWidth;
+        ctx.fillRect(x, height - 2, barDrawWidth, 2);
+      }
+      return;
+    }
+
     const draw = () => {
       rafRef.current = requestAnimationFrame(draw);
       analyser.getByteFrequencyData(data);
 
-      const { width, height } = canvas;
       ctx.clearRect(0, 0, width, height);
-
-      const barWidth = width / BAR_COUNT;
-      ctx.fillStyle = "rgb(200 255 61)"; // the one accent — no gradient
+      ctx.fillStyle = fillStyle;
 
       for (let i = 0; i < BAR_COUNT; i++) {
         const value = data[i * step] || 0;
-        const barHeight = isPlaying ? Math.max((value / 255) * height, 2) : 2;
+        const barHeight = Math.max((value / 255) * height, 2);
         const x = i * barWidth;
-        ctx.fillRect(x, height - barHeight, Math.max(barWidth - 2, 1), barHeight);
+        ctx.fillRect(x, height - barHeight, barDrawWidth, barHeight);
       }
     };
 
     draw();
-    return () => cancelAnimationFrame(rafRef.current);
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
   }, [analyser, isPlaying]);
 
   if (!analyser) return null;
