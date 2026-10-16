@@ -28,7 +28,7 @@ const Stats = lazyComponent(() => import("./pages/Stats"), {
 });
 
 function App() {
-  const { isAuthenticated, checkAuth, loading } = useAuthStore();
+  const { isAuthenticated, checkAuth, loading, isReconnecting } = useAuthStore();
 
   useEffect(() => {
     checkAuth();
@@ -51,7 +51,7 @@ function App() {
 
           <div className="flex items-center justify-center gap-2.5">
             <Loader2 size={15} className="animate-spin text-subtle" />
-            <span className="text-xs text-subtle">Loading your session</span>
+            <span className="text-xs text-subtle">Verifying your session</span>
           </div>
         </div>
       </div>
@@ -77,6 +77,13 @@ function App() {
       />
 
       <Navbar />
+
+      {isReconnecting && (
+        <div className="bg-primary/10 border-b border-primary/20 text-xs py-1.5 px-4 text-center text-primary flex items-center justify-center gap-2">
+          <Loader2 size={12} className="animate-spin" />
+          <span>Connecting to audio server... backend is waking up</span>
+        </div>
+      )}
 
       <Routes>
         <Route
